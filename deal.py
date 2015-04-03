@@ -2,24 +2,45 @@
 
 import os
 import sys
+import time
 
+start_time=int(time.time())
+time_array=time.localtime(start_time)
+time_style=time.strftime("%Y-%m-%d %H:%M:%S",time_array)
 
+print "START:%s"%time_style
+
+os.system('mkdir -p tmp_data')
+os.system('rm -f tmp_data/*.txt')
 f_src=open('./datas.txt')
+print "Get Searched Data Success!"
 
 data_str=f_src.read()
-data_r=data_str.split('\n')
+data_r=data_str.strip('\n').split('\n')
 datas=[]
 datas=[line.strip('\r') for line in data_r]
 ser_data='|'.join(datas)
-
+print ser_data
+print "Begin to Collect Data"
+os.system('grep -E "%s" ali_data_get.log > ./tmp_data/Get.txt'%ser_data)
 os.system('grep -E "%s" ali_change_*.log > ./tmp_data/Chg.txt'%ser_data) 
 os.system('grep -E "%s" cms_change_*.log > ./tmp_data/CMS.txt'%ser_data) 
 os.system('grep -E "%s" pass_worklist.log > ./tmp_data/Pass.txt'%ser_data) 
 os.system('grep -E "%s" unprocess_worklist.log > ./tmp_data/Unpro.txt'%ser_data) 
 os.system('grep -E "%s" consist_worklist.log > ./tmp_data/Con.txt'%ser_data) 
 os.system('grep -E "%s" metaq_resent.log > ./tmp_data/Qresnd.txt'%ser_data) 
+print "Collection is over."
 
+print "Preparing Needed Resources"
 opponent={}
+opponent['get']={}
+opponent['get']['f_in']=open('./tmp_data/Get.txt','r')
+opponent['get']['f_out1']=open('./tmp_data/get_inPriWL.txt','w')
+opponent['get']['f_out2']=open('./tmp_data/get_inMongo.txt','w')
+opponent['get']['f_out3']=open('./tmp_data/get_notRciv.txt','w')
+opponent['get']['f_else']=open('./tmp_data/get_else.txt','w')
+opponent['get']['info1']="ali metaq data add to priority worklist success!"
+opponent['get']['info2']="get ali data,add to mongo success."
 opponent['chg']={}
 opponent['chg']['f_in']=open('./tmp_data/Chg.txt','r')
 opponent['chg']['f_out1']=open('./tmp_data/chg_inWL.txt','w')
@@ -63,17 +84,30 @@ opponent['qresend']['f_else']=open('./tmp_data/qresnd_else.txt','w')
 opponent['qresend']['info1']="Add worklist success"
 opponent['qresend']['info2']="resend info to metaq success."
 
+print "Start to classify the datas"
 for key in opponent:
     process=[]
     unprocess=[]
+    poiid_dic={}
+    poiid_pass=[]
     for line in opponent[key]['f_in'].readlines():
         pos_id=line.find('db_id')
         if pos_id<0:
             continue
         db_id=line[pos_id+6:pos_id+14]
+        db_id.strip(' ')
+
+        if key=='get':
+            if db_id in datas:
+                datas.remove(db_id)
+        pos_poiid=line.find('poiid')
         if not db_id in unprocess:
             unprocess.append(db_id)
-     
+            if pos_poiid<0:
+                pass
+            else:
+                poiid_dic[db_id]=line[pos_poiid+6:pos_poiid+16]
+
         pos_info=line.find(opponent[key]['info1'])
         if pos_info<0:
             pass
@@ -93,7 +127,23 @@ for key in opponent:
             opponent[key]['f_out2'].write(line)
             unprocess.remove(db_id)
             process.append(db_id)
+            poiid_pass.append(db_id)
             continue
     for id in unprocess:
         opponent[key]['f_else'].write("db_id:%s\n"%id)
-    
+    if key=='get':
+        for id in datas:
+            opponent[key]['f_out3'].write("db_id:%s\n"%id)
+    if key=='cms':
+        f_out_pair=open('tmp_data/cms_pair.txt','w')
+        for id in poiid_pass:
+            f_out_pair.write("db_id:%s  "%id)
+            f_out_pair.write("poiid:%s\n"%poiid_dic[id])
+            
+print "The Procedure is Success!"
+
+end_time=int(time.time())
+time_array=time.localtime(end_time)
+time_style=time.strftime("%Y-%m-%d %H:%M:%S",time_array)
+
+print "END:%s"%time_style
