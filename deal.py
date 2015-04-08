@@ -29,6 +29,7 @@ os.system('grep -E "%s" pass_worklist.log > ./tmp_data/Pass.txt'%ser_data)
 os.system('grep -E "%s" unprocess_worklist.log > ./tmp_data/Unpro.txt'%ser_data) 
 os.system('grep -E "%s" consist_worklist.log > ./tmp_data/Con.txt'%ser_data) 
 os.system('grep -E "%s" metaq_resent.log > ./tmp_data/Qresnd.txt'%ser_data) 
+os.system('grep -E "%s" cms_repeat.log > ./tmp_data/Rept.txt'%ser_data)
 print "Collection is over."
 
 print "Preparing Needed Resources"
@@ -76,6 +77,13 @@ opponent['consist']['f_out2']=open('./tmp_data/con_back.txt','w')
 opponent['consist']['f_else']=open('./tmp_data/con_else.txt','w')
 opponent['consist']['info1']="Add worklist success"
 opponent['consist']['info2']="Send back gaode data into metaq success"
+opponent['repeat']={}
+opponent['repeat']['f_in']=open('./tmp_data/Rept.txt','r')
+opponent['repeat']['f_out1']=open('./tmp_data/rept_fail.txt','w')
+opponent['repeat']['f_out2']=open('./tmp_data/rept_success.txt','w')
+opponent['repeat']['f_else']=open('./tmp_data/rept_else.txt','w')
+opponent['repeat']['info1']="put metaq fail"
+opponent['repeat']['info2']="Send back to metaq success."
 opponent['qresend']={}
 opponent['qresend']['f_in']=open('./tmp_data/Qresnd.txt','r')
 opponent['qresend']['f_out1']=open('./tmp_data/qresnd_inWL.txt','w')
@@ -140,7 +148,7 @@ for key in opponent:
             f_out_pair.write("db_id:%s  "%id)
             f_out_pair.write("poiid:%s\n"%poiid_dic[id])
             
-print "The Procedure is Success!"
+print "The Procedure is Over!"
 
 end_time=int(time.time())
 time_array=time.localtime(end_time)
