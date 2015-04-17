@@ -15,7 +15,7 @@ str_time = time.strftime('%Y_%m_%d',time.localtime(time.time()))
 ss_time = time.strftime('%Y%m%d000000',time.localtime(time.time()))
 ifile = "./ali/ALIO2O_data"
 ofile = "./inworklist/in_worklist_%s"%str_time
-ofile2= "./inworklist/in_worklist_3days%s"%str_time
+ofile2= "./inworklist/in_worklist_3days_%s"%str_time
 #os.system('grep  "\"status\": \"0\"" %s | grep "\"worklist\": \"1\"" > %s'%(ifile,ofile))
 #os.system('grep  ""status": "0"" %s > %s'%(ifile,ofile))
 fout = open(ofile,"w")
@@ -29,10 +29,11 @@ for line in lines:
     status = data_json.get("status","")
     worklist = data_json.get("worklist","")
     cms = data_json.get("status_cms","")
-    if worklist == "1":
+    if worklist == "0":
         fout.write(line[-1]+"\n")
         dtime = data_json.get("time","0").replace("-","").replace(" ","").replace(":","")
         if long(dtime) +2000000 < long(ss_time):
             fout_3days.write(line[-1]+"\n")
 fout.close()
+fout_3days.close()
 
